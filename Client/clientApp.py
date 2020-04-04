@@ -8,6 +8,7 @@ choices = ('put','get','list')
 sg.theme('DarkAmber')   # Add a touch of color
 # All the stuff inside your window.
 layout = [  [sg.Text('Welcome to the privateshare client!')],
+            [sg.Text('Please note that the Client will appear unresponsive during successful downloading/uploading')],
             [sg.Text('Please enter the IP address of the Server:'), sg.InputText()],
             [sg.Text('Please enter the Port Number of the Server:'), sg.InputText()],
             [sg.Listbox(choices, size=(15, len(choices)), key='-CHOICE-'), sg.Output(size=(50,10), key='-OUTPUT-')],
@@ -38,7 +39,7 @@ while True:
     except Exception as e:
         # Print the exception message
         print(e)
-        
+
     try:
         while True:
             if choice:

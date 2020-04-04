@@ -8,6 +8,7 @@ sg.theme('DarkAmber')   # Add a touch of color
 # All the stuff inside your window.
 layout = [  [sg.Text('Welcome to the privateshare server!')],
             [sg.Text('Server runs for 5 minutes at a time unless in current operation')],
+            [sg.Text('Please note that the GUI will appear unresponsive during operations')],
             [sg.Text('Please enter the Port Number you wish to bind to:'), sg.InputText()],
             [sg.Button('Run Server'), sg.Button('Close Server')] ]
 
