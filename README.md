@@ -2,6 +2,8 @@
 Effective TCP Server and Client operating using python web sockets:
 #### General notes: 
 
+###### To use privateshare across networks (server on one network, client on different network), you will need to set up port forwarding through your router.
+
 * Files are downloaded/uploaded to/from wherever application or script is stored. 
   * If you are launching serverApp.exe from the downloads folder, the downloads folder becomes the server folder. 
   * If you are launching clientApp.exe from the downloads folder, the downlaods folder becomes the client folder. 
