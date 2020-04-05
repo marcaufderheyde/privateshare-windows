@@ -16,7 +16,7 @@ try:
 	 Register the socket with the OS kernel so that commands sent
 	 to the user-defined port number are delivered to this program.
 	"""
-	srv_sock.bind(("0.0.0.0", int(sys.argv[1])))
+	srv_sock.bind(('', int(sys.argv[1])))
 
 	# Report success post-binding
 	print("Server up and running: 0.0.0.0 " + str(sys.argv[1]) + " Port")

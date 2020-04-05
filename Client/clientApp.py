@@ -70,6 +70,7 @@ while True:
                                 print("Uploading file to server...")
                                 cli_sock.send(data)
                                 data = f.read(33554432)
+                                window.refresh()
                             f.close()
                             print("Done uploading file to server!")
                             cli_sock.shutdown(socket.SHUT_WR)
@@ -96,6 +97,7 @@ while True:
                                 print("Receiving...")
                                 f.write(data)
                                 data = cli_sock.recv(33554432)
+                                window.refresh()
                             f.close()
                             print("Done Receiving")
                             break

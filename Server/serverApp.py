@@ -10,6 +10,7 @@ layout = [  [sg.Text('Welcome to the privateshare server!')],
             [sg.Text('Server runs for 5 minutes at a time unless in current operation')],
             [sg.Text('Please note that the GUI will appear unresponsive during operations')],
             [sg.Text('Please enter the Port Number you wish to bind to:'), sg.InputText()],
+            [sg.Output(size=(50,10), key='-OUTPUT-')],
             [sg.Button('Run Server'), sg.Button('Close Server')] ]
 
 # Create the Window
@@ -51,6 +52,7 @@ while True:
     if event in (None, 'Close Server'):   # if user closes window or clicks cancel
         srv_sock.close()
         break
+    window.refresh()
 
     while True:
 
@@ -59,7 +61,6 @@ while True:
         socket errors as well as errors related to user input.
         """
         try:
-
             """
             Dequeue a connection request from the queue created by listen() earlier.
             If no such request is in the queue yet, this will block until one comes
@@ -94,6 +95,7 @@ while True:
                         print("Receiving...")
                         f.write(data)
                         data = cli_sock.recv(33554432)
+                        window.refresh()
                     f.close()
                     print("Done Receiving")
                     cli_sock.close()
@@ -120,6 +122,7 @@ while True:
                         print("Sending...")
                         cli_sock.send(data)
                         data = f.read(33554432)
+                        window.refresh()
                     f.close()
                     print("Finished sending file to client")
                     cli_sock.shutdown(socket.SHUT_WR)
