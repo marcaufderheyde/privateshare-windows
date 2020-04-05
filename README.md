@@ -1,5 +1,40 @@
 # privateshare
 Effective TCP Server and Client operating using python web sockets:
+#### General notes: 
+
+###### To use privateshare across networks (server on one network, client on different network), you will need to set up port forwarding through your router.
+
+* Files are downloaded/uploaded to/from wherever application or script is stored. 
+  * If you are launching serverApp.exe from the downloads folder, the downloads folder becomes the server folder. 
+  * If you are launching clientApp.exe from the downloads folder, the downlaods folder becomes the client folder. 
+* Uploading a file with same filename of file already in server is prohibited to deny duplicates.
+* Downloading a file with same filename of file already in client folder is prohibited to deny duplicates.
+* Currently the server must be force closed
+
+## Graphical User Interface (GUI) Instructions:
+
+### **Using the Server:**
+
+1. Download the executable server application from [Here](https://github.com/marcaufderheyde/privateshare/tree/master/Server/dist)
+2. Open serverApp.exe
+3. Enter the port number you wish to bind to.
+4. Click Run Server.
+5. The server is now running and will remain running for up to 5 minutes without any connection requests. After 5 minutes, the server will automatically shutdown.
+6. While the server is running, the GUI will appear unresponsive. Logging can be found in the Command Window opened when the serverApp is opened.
+
+### **Using the Client:**
+
+1. Download the executable client application from [Here](https://github.com/marcaufderheyde/privateshare/tree/master/Client/dist)
+2. Open clientApp.exe
+3. Enter the IP address of the server you are trying to connect to. If you are running both server and client on the same machine, you can use 'localhost' for server address.
+4. Enter the port number to which the server is bound (this number is specified by the maintainer of the server.
+5. Select an operation from the menu on the left of the log box.
+6. 'Put' corresponds to uploading a file, 'Get' corresponds to downloading a file and 'List' simply requests a list of all filenames accessible on the server for download.
+7. For 'Put' and 'Get' commands, a filename is required. Enter this in the bottom box.
+8. Click Put/Get/List in order to initialize an operation. Client will appear unresponsive if successfully carrying out an operation.
+9. Client will become responsive once operation is completed.
+
+## Command Line Interface Instructions & Detailed description of how it works:
 
 **Use Anaconda prompt for entering commands. [Download Anaconda Here](https://www.anaconda.com/distribution/#download-section)**
 
