@@ -23,22 +23,25 @@ while True:
     # Create a client socket
     cli_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     event, values = window.read()
-    server_ip = values[0]
-    server_port = int(values[1])
-    choice = str(values['-CHOICE-'][0])
-    filename = str(values[2])
+    if values[0] and values[1] and values['-CHOICE-']:
+        server_ip = values[0]
+        server_port = int(values[1])
+        choice = str(values['-CHOICE-'][0])
+        filename = str(values[2])
+        # Prevent socket errors
+        try:
+            # Connect client socket to server socket
+            cli_sock.connect((server_ip, server_port))
+            srv_addr = (values[0], int(values[1]))
+
+        except Exception as e:
+            # Print the exception message
+            print(e)
+            print("")
+    else:
+        print("You are missing some input values. Please check you have entered all information correctly!")
     if event in (None, 'Close Client'):   # if user closes window or clicks cancel
         break
-
-    # Prevent errors
-    try:
-        # Connect client socket to server socket
-        cli_sock.connect((server_ip, server_port))
-        srv_addr = (values[0], int(values[1]))
-
-    except Exception as e:
-        # Print the exception message
-        print(e)
 
     try:
         while True:
@@ -48,6 +51,7 @@ while True:
                     directory = os.listdir()
                     if(not filename in directory):
                         print("You are trying to upload a file which does not exist. Please try again")
+                        print("")
                         break
                     else:
                         # Send the server the exact commands of the put request
@@ -62,6 +66,7 @@ while True:
 
                         if(checkreupload.decode('utf-8') == 'cancel'):
                             print("You are trying to upload a file with a taken filename. Please alter the filename.")
+                            print("")
                             break
 
                         # If server allows it, continue to upload file to server.
@@ -73,6 +78,7 @@ while True:
                                 window.refresh()
                             f.close()
                             print("Done uploading file to server!")
+                            print("")
                             cli_sock.shutdown(socket.SHUT_WR)
                             break
                 elif(choice == 'get'):
@@ -87,6 +93,7 @@ while True:
                         # Check that the server has the file you are trying to download
                         if(checkreupload.decode('utf-8') == 'cancel'):
                             print("You are trying to download a file that doesn't exist on the server. Please try again!")
+                            print("")
                             break
 
                         # If the server has the file, continue to download file.
@@ -100,10 +107,12 @@ while True:
                                 window.refresh()
                             f.close()
                             print("Done Receiving")
+                            print("")
                             break
 
                     else:
                         print("You already have a file with that filename in the directory you are trying to download into")
+                        print("")
                         break
 
                 elif(choice == 'list'):
@@ -112,9 +121,15 @@ while True:
                     directory = cli_sock.recv(33554432)
                     print("File Directory received:")
                     print(directory.decode('utf-8'))
+                    print("")
                     break
             else:
                 print("You need to select an operation")
+    except Exception as e:
+        # Print the exception message
+        print(e)
+        print("")
     finally:
         cli_sock.close()
+
 window.close()
