@@ -3,6 +3,8 @@ import socket
 import sys
 import os
 import time
+from _thread import *
+import threading
 
 sg.theme('DarkAmber')   # Add a touch of color
 # All the stuff inside your window.
@@ -22,7 +24,7 @@ while True:
     srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     event, values = window.read()
     port_number = int(values[0])
-
+    window.refresh()
     """ 
     Enclose the following two lines in a try-except block to catch
     exceptions related to already bound ports, invalid/missing
@@ -49,13 +51,13 @@ while True:
         # Exit with a non-zero value, to indicate an error condition
         srv_sock.close()
 
-    if event in (None, 'Close Server'):   # if user closes window or clicks cancel
-        srv_sock.close()
-        break
     window.refresh()
 
     while True:
-
+        window.refresh()
+        if event in (None, 'Close Server'):   # if user closes window or clicks cancel
+            srv_sock.close()
+            break
         """
         Surround the following code in a try-except block to account for
         socket errors as well as errors related to user input.
