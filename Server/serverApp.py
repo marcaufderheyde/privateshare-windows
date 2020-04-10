@@ -6,25 +6,7 @@ import time
 from _thread import *
 import threading
 
-sg.theme('DarkAmber')   # Add a touch of color
-# All the stuff inside your window.
-layout = [  [sg.Text('Welcome to the privateshare server!')],
-            [sg.Text('Server runs for 5 minutes at a time unless in current operation')],
-            [sg.Text('Please note that the GUI will appear unresponsive during operations')],
-            [sg.Text('Please enter the Port Number you wish to bind to:'), sg.InputText()],
-            [sg.Output(size=(50,10), key='-OUTPUT-')],
-            [sg.Button('Run Server'), sg.Button('Close Server')] ]
-
-# Create the Window
-window = sg.Window('privateshare server', layout)
-
-# Event Loop to process "events" and get the "values" of the inputs
-while True:
-    # Create server socket
-    srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    event, values = window.read()
-    port_number = int(values[0])
-    window.refresh()
+def threaded(srv_sock, port_number):
     """ 
     Enclose the following two lines in a try-except block to catch
     exceptions related to already bound ports, invalid/missing
@@ -35,29 +17,26 @@ while True:
         Register the socket with the OS kernel so that commands sent
         to the user-defined port number are delivered to this program.
         """
-        srv_sock.bind(("0.0.0.0", port_number))
+        srv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        srv_sock.bind(("0.0.0.0", int(port_number)))
 
         # Report success post-binding
         print("Server up and running: 0.0.0.0 " + str(port_number) + " Port")
         print("Waiting for connection")
-        bound = time.time()
 
         # Initialize connection queue
-        srv_sock.settimeout(300.0)
         srv_sock.listen(5)
     except Exception as e:
         # Print the exception message
         print(e)
-        # Exit with a non-zero value, to indicate an error condition
+        # Close the server socket as well to release its resources back to the OS
         srv_sock.close()
+        return
 
-    window.refresh()
+    running = True
 
-    while True:
-        window.refresh()
-        if event in (None, 'Close Server'):   # if user closes window or clicks cancel
-            srv_sock.close()
-            break
+    while running:
+
         """
         Surround the following code in a try-except block to account for
         socket errors as well as errors related to user input.
@@ -97,7 +76,6 @@ while True:
                         print("Receiving...")
                         f.write(data)
                         data = cli_sock.recv(33554432)
-                        window.refresh()
                     f.close()
                     print("Done Receiving")
                     cli_sock.close()
@@ -124,7 +102,6 @@ while True:
                         print("Sending...")
                         cli_sock.send(data)
                         data = f.read(33554432)
-                        window.refresh()
                     f.close()
                     print("Finished sending file to client")
                     cli_sock.shutdown(socket.SHUT_WR)
@@ -163,8 +140,45 @@ while True:
             print("The connection has been closed")
             if 'cli_sock' in globals():
                 cli_sock.close()
+            return
 
     # Close the server socket as well to release its resources back to the OS
     srv_sock.close()
 
-window.close()
+listen_lock = threading.Lock()
+
+def Main():
+    # Create server socket
+    srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sg.theme('DarkAmber')   # Add a touch of color
+    # All the stuff inside your window.
+    layout = [  [sg.Text('Welcome to the privateshare server!')],
+                [sg.Text('Server runs for 5 minutes at a time unless in current operation')],
+                [sg.Text('Please note that the GUI will appear unresponsive during operations')],
+                [sg.Text('Please enter the Port Number you wish to bind to:'), sg.InputText()],
+                [sg.Output(size=(50,10), key='-OUTPUT-')],
+                [sg.Button('Run Server'), sg.Button('Close Server')] ]
+
+    # Create the Window
+    window = sg.Window('privateshare server', layout)
+
+    # Event Loop to process "events" and get the "values" of the inputs
+    while True:
+        event, values = window.read()
+        if values[0]:
+            port_number = int(values[0])
+            if event in ('Run Server'):
+                listen_lock.acquire()
+                start_new_thread(threaded,(srv_sock, port_number,))
+            window.refresh()
+        else:
+            print("Please enter a valid port number")
+        
+        if event in (None, 'Close Server'):   # if user closes window or clicks cancel
+            break
+
+        # Close the server socket as well to release its resources back to the OS
+    window.close()
+
+if __name__ == '__main__':
+    Main()
