@@ -1,5 +1,10 @@
-# privateshare
+# privateshare - Windows Edition
+
 Effective TCP Server and Client operating using python web sockets:
+
+## Download server [Here](https://github.com/marcaufderheyde/privateshare-windows/raw/master/Server/dist/serverApp.exe)
+## Download client [Here](https://github.com/marcaufderheyde/privateshare-windows/raw/master/Client/dist/clientApp.exe)
+
 #### General notes: 
 
 ###### To use privateshare across networks (server on one network, client on different network), you will need to set up port forwarding through your router.
@@ -15,7 +20,7 @@ Effective TCP Server and Client operating using python web sockets:
 
 ### **Using the Server:**
 
-1. Download the executable server application from [Here](https://github.com/marcaufderheyde/privateshare/tree/master/Server/dist)
+1. Download the executable server application from [Here](https://github.com/marcaufderheyde/privateshare-windows/raw/master/Server/dist/serverApp.exe)
 2. Open serverApp.exe
 3. Enter the port number you wish to bind to.
 4. Click Run Server.
@@ -24,7 +29,7 @@ Effective TCP Server and Client operating using python web sockets:
 
 ### **Using the Client:**
 
-1. Download the executable client application from [Here](https://github.com/marcaufderheyde/privateshare/tree/master/Client/dist)
+1. Download the executable client application from [Here](https://github.com/marcaufderheyde/privateshare-windows/raw/master/Client/dist/clientApp.exe)
 2. Open clientApp.exe
 3. Enter the IP address of the server you are trying to connect to. If you are running both server and client on the same machine, you can use 'localhost' for server address.
 4. Enter the port number to which the server is bound (this number is specified by the maintainer of the server.
