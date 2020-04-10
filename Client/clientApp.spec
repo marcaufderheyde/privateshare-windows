@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['clientApp.py'],
-             pathex=['C:\\Workspace\\privateshare\\Client'],
+             pathex=['/Users/oliviagube/Workspace/privateshare-mac/Client'],
              binaries=[],
              datas=[],
              hiddenimports=[],
