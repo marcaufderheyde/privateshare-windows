@@ -1,9 +1,9 @@
-# privateshare - Windows Edition
+# privateshare - Mac Edition
 
 Effective TCP Server and Client operating using python web sockets:
 
-## Download server [Here](https://github.com/marcaufderheyde/privateshare-windows/raw/master/Server/dist/serverApp.exe)
-## Download client [Here](https://github.com/marcaufderheyde/privateshare-windows/raw/master/Client/dist/clientApp.exe)
+## Download server [Here](https://github.com/Vivinen/privateshare-mac/raw/master/Server/dist/serverApp.app)
+## Download client [Here](https://github.com/Vivinen/privateshare-mac/raw/master/Client/dist/clientApp.app)
 
 #### General notes: 
 
@@ -20,7 +20,7 @@ Effective TCP Server and Client operating using python web sockets:
 
 ### **Using the Server:**
 
-1. Download the executable server application from [Here](https://github.com/marcaufderheyde/privateshare-windows/raw/master/Server/dist/serverApp.exe)
+1. Download the executable server application from [Here](https://github.com/Vivinen/privateshare-mac/raw/master/Server/dist/serverApp.app)
 2. Open serverApp.exe
 3. Enter the port number you wish to bind to.
 4. Click Run Server.
@@ -29,7 +29,7 @@ Effective TCP Server and Client operating using python web sockets:
 
 ### **Using the Client:**
 
-1. Download the executable client application from [Here](https://github.com/marcaufderheyde/privateshare-windows/raw/master/Client/dist/clientApp.exe)
+1. Download the executable client application from [Here](https://github.com/Vivinen/privateshare-mac/raw/master/Client/dist/clientApp.app)
 2. Open clientApp.exe
 3. Enter the IP address of the server you are trying to connect to. If you are running both server and client on the same machine, you can use 'localhost' for server address.
 4. Enter the port number to which the server is bound (this number is specified by the maintainer of the server.
