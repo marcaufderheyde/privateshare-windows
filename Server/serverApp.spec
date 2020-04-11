@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['serverApp.py'],
-             pathex=['C:\\Workspace\\privateshare\\Server'],
+             pathex=['C:\\Workspace\\privateshare-windows\\Server'],
              binaries=[],
              datas=[],
              hiddenimports=[],

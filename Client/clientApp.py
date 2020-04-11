@@ -1,19 +1,27 @@
 import PySimpleGUI as sg
 import socket
 import sys
+import base64
 import os
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.fernet import Fernet
 
 choices = ('put','get','list')
+global key
+global decrypted
 
 sg.theme('DarkAmber')   # Add a touch of color
 # All the stuff inside your window.
-layout = [  [sg.Text('Welcome to the privateshare client!')],
-            [sg.Text('Please note that the Client will appear unresponsive during successful downloading/uploading')],
-            [sg.Text('Please enter the IP address of the Server:'), sg.InputText()],
-            [sg.Text('Please enter the Port Number of the Server:'), sg.InputText()],
-            [sg.Listbox(choices, size=(15, len(choices)), key='-CHOICE-'), sg.Output(size=(50,10), key='-OUTPUT-')],
-            [sg.Text('Filename you are tyring to download/upload:'), sg.InputText()],
-            [sg.Button('Put/Get/List'), sg.Button('Close Client')] ]
+layout = [  [sg.Text('Welcome to the privateshare client!', size=(30, 1), font=("Helvetica", 25), text_color='gray')],
+            [sg.Text('Please enter the IP address of the Server:', size=(35, None)), sg.InputText()],
+            [sg.Text('Please enter the Port Number of the Server:', size=(35, None)), sg.InputText()],
+            [sg.Text('Please enter the Password of the Server:', size=(35, None)), sg.InputText()],
+            [sg.Text('Filename you are tyring to download/upload:', size=(35, None)), sg.InputText()],
+            [sg.Text('Server Operation: ', size=(35, None)), sg.Combo(choices, size=(15, len(choices)), key='-CHOICE-')], 
+            [sg.Output(size=(85,10), key='-OUTPUT-')],
+            [sg.Button('Connect'), sg.Button('Close Client')] ]
 
 # Create the Window
 window = sg.Window('privateshare client', layout)
@@ -26,8 +34,9 @@ while True:
     if values[0] and values[1] and values['-CHOICE-']:
         server_ip = values[0]
         server_port = int(values[1])
-        choice = str(values['-CHOICE-'][0])
-        filename = str(values[2])
+        choice = str(values['-CHOICE-'])
+        filename = str(values[3])
+        password = str(values[2])
         # Prevent socket errors
         try:
             # Connect client socket to server socket
@@ -47,68 +56,94 @@ while True:
         while True:
             if choice:
                 if(choice == 'put'):
+
                     # Make sure that the client directory contains the file it is trying to upload
                     directory = os.listdir()
                     if(not filename in directory):
                         print("You are trying to upload a file which does not exist. Please try again")
                         print("")
                         break
+                    
                     else:
                         # Send the server the exact commands of the put request
-                        cli_sock.sendall((choice + ',' + filename).encode('utf-8'))
-
-                        # Open the file you are trying to send
-                        f = open(filename,'rb')
-                        data = f.read(33554432)
-
-                        # Before starting to send file, check that the server allows it. You cannot upload a file already on the server.
-                        checkreupload = cli_sock.recv(32)
-
-                        if(checkreupload.decode('utf-8') == 'cancel'):
-                            print("You are trying to upload a file with a taken filename. Please alter the filename.")
-                            print("")
+                        cli_sock.send((choice + ',' + filename + ',' + password).encode('utf-8'))
+                        checkpassword = cli_sock.recv(4)
+                        if(checkpassword.decode('utf-8') == '----'):
+                            print("Wrong password, please try again!")
                             break
+                        elif(checkpassword.decode('utf-8') == '---+'):
+                            key = cli_sock.recv(44)
+                            print("Cryptographic Key has been successfully generated from the server.")
+                            
+                            # Before starting to send file, check that the server allows it. You cannot upload a file already on the server.
+                            checkreupload = cli_sock.recv(4)
 
-                        # If server allows it, continue to upload file to server.
-                        if(checkreupload.decode('utf-8') == 'pass'):
-                            while(data):
-                                print("Uploading file to server...")
-                                cli_sock.send(data)
+                            if(checkreupload.decode('utf-8') == '----'):
+                                print("You are trying to upload a file with a taken filename. Please alter the filename.")
+                                print("")
+                                break
+                            
+                            # If server allows it, continue to upload file to server.
+                            elif(checkreupload.decode('utf-8') == '---+'):
+
+                                # Open the file you are trying to send
+                                f = open(filename,'rb')
                                 data = f.read(33554432)
-                                window.refresh()
-                            f.close()
-                            print("Done uploading file to server!")
-                            print("")
-                            cli_sock.shutdown(socket.SHUT_WR)
-                            break
+                                collection = data
+                                while(data):
+                                    data = f.read(33554432)
+                                    collection += data
+                                    print("Sending file...")
+                                    window.refresh()
+                                print("")
+
+                                # Encrypt the collected data using AES and send to client
+                                fe = Fernet(key)
+                                encrypted = fe.encrypt(collection)
+                                cli_sock.sendall(encrypted)
+                                f.close()
+                                print("Finished sending file to client")
+                                break
+
                 elif(choice == 'get'):
                     # Make sure you don't have a file with the same filename already
                     directory = os.listdir()
                     if(not filename in directory):
-
-                    # Send the server the exact commands of the get request
-                        cli_sock.send((choice + ',' + filename).encode('utf-8'))
-                        checkreupload = cli_sock.recv(32)
-
-                        # Check that the server has the file you are trying to download
-                        if(checkreupload.decode('utf-8') == 'cancel'):
-                            print("You are trying to download a file that doesn't exist on the server. Please try again!")
-                            print("")
+                        cli_sock.send((choice + ',' + filename + ',' + password).encode('utf-8'))
+                        checkpassword = cli_sock.recv(4)
+                        
+                        # Make sure the server password is correct
+                        if(checkpassword.decode('utf-8') == '----'):
+                            print("Wrong password, please try again!")
                             break
+                        elif(checkpassword.decode('utf-8') == '---+'):
+                            key = cli_sock.recv(44)
+                            print("Key has been successfully generated from the server")
 
-                        # If the server has the file, continue to download file.
-                        if(checkreupload.decode('utf-8') == 'pass'):
-                            f = open(str(filename),'wb')
-                            data = cli_sock.recv(33554432)
-                            while(data):
-                                print("Receiving...")
-                                f.write(data)
+                            checkreupload = cli_sock.recv(4)
+                            # Check that the server has the file you are trying to download
+                            if(checkreupload.decode('utf-8') == '----'):
+                                print("You are trying to download a file that doesn't exist on the server. Please try again!")
+                                print("")
+                                break
+
+                            # If the server has the file, continue to download file.
+                            elif(checkreupload.decode('utf-8') == '---+'):
+                                f = open(str(filename),'wb')
                                 data = cli_sock.recv(33554432)
-                                window.refresh()
-                            f.close()
-                            print("Done Receiving")
-                            print("")
-                            break
+                                collection = data
+                                while(data):
+                                    data = cli_sock.recv(33554432)
+                                    collection += data
+                                    print("Receiving...")
+                                    window.refresh()
+                                fe = Fernet(key)
+                                decrypted = fe.decrypt(collection)
+                                f.write(decrypted)
+                                f.close()
+                                print("Done Receiving!!!")
+                                print("")
+                                break
 
                     else:
                         print("You already have a file with that filename in the directory you are trying to download into")
@@ -130,6 +165,8 @@ while True:
         print(e)
         print("")
     finally:
+        print("Client Socket has been closed")
+        print("")
         cli_sock.close()
 
 window.close()
