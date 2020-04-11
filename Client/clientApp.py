@@ -119,6 +119,9 @@ while True:
                         elif(checkpassword.decode('utf-8') == '---+'):
                             key = cli_sock.recv(44)
                             print("Key has been successfully generated from the server")
+                            print("Waiting on server to encrypt file and send")
+                            print("This might take a few moments and the program may appear frozen")
+                            window.refresh()
 
                             checkreupload = cli_sock.recv(4)
                             # Check that the server has the file you are trying to download
@@ -131,6 +134,7 @@ while True:
                             elif(checkreupload.decode('utf-8') == '---+'):
                                 f = open(str(filename),'wb')
                                 data = cli_sock.recv(33554432)
+                                window.refresh()
                                 collection = data
                                 while(data):
                                     data = cli_sock.recv(33554432)
@@ -138,10 +142,11 @@ while True:
                                     print("Receiving...")
                                     window.refresh()
                                 fe = Fernet(key)
+                                print("Decrypting file...")
                                 decrypted = fe.decrypt(collection)
                                 f.write(decrypted)
                                 f.close()
-                                print("Done Receiving!!!")
+                                print("Done Receiving and Decrypting!!!")
                                 print("")
                                 break
 
