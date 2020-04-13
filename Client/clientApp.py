@@ -19,12 +19,16 @@ layout = [  [sg.Text('Welcome to the privateshare client!', size=(30, 1), font=(
             [sg.Text('Please enter the Port Number of the Server:', size=(35, None)), sg.InputText()],
             [sg.Text('Please enter the Password of the Server:', size=(35, None)), sg.InputText()],
             [sg.Text('Filename you are tyring to download/upload:', size=(35, None)), sg.InputText()],
-            [sg.Text('Server Operation: ', size=(35, None)), sg.Combo(choices, size=(15, len(choices)), key='-CHOICE-')], 
+            [sg.Text('Server Operation: ', size=(35, None)), sg.Text('', size=(23, None)), sg.Combo(choices, size=(15, len(choices)), key='-CHOICE-')], 
             [sg.Output(size=(85,10), key='-OUTPUT-')],
+            [sg.Text('')],
+            [sg.Text('Transfer Progress: '),sg.ProgressBar(100, orientation='h', size=(38, 30), key='progressbar')],
+            [sg.Text('')],
             [sg.Button('Connect'), sg.Button('Close Client')] ]
 
 # Create the Window
 window = sg.Window('privateshare client', layout)
+progress_bar = window['progressbar']
 
 # Event Loop to process "events" and get the "values" of the inputs
 while True:
@@ -67,43 +71,47 @@ while True:
                     else:
                         # Send the server the exact commands of the put request
                         cli_sock.send((choice + ',' + filename + ',' + password).encode('utf-8'))
-                        checkpassword = cli_sock.recv(4)
-                        if(checkpassword.decode('utf-8') == '----'):
-                            print("Wrong password, please try again!")
-                            break
-                        elif(checkpassword.decode('utf-8') == '---+'):
-                            key = cli_sock.recv(44)
-                            print("Cryptographic Key has been successfully generated from the server.")
-                            
-                            # Before starting to send file, check that the server allows it. You cannot upload a file already on the server.
-                            checkreupload = cli_sock.recv(4)
-
-                            if(checkreupload.decode('utf-8') == '----'):
-                                print("You are trying to upload a file with a taken filename. Please alter the filename.")
-                                print("")
+                        checkuploadsallowed = cli_sock.recv(4)
+                        if(checkuploadsallowed.decode('utf-8') == '----'):
+                            print("Uploads are disabled for this server. Please contact the server maintainer or download a file")
+                        elif(checkuploadsallowed.decode('utf-8') == '---+'):
+                            checkpassword = cli_sock.recv(4)
+                            if(checkpassword.decode('utf-8') == '----'):
+                                print("Wrong password, please try again!")
                                 break
-                            
-                            # If server allows it, continue to upload file to server.
-                            elif(checkreupload.decode('utf-8') == '---+'):
+                            elif(checkpassword.decode('utf-8') == '---+'):
+                                key = cli_sock.recv(44)
+                                print("Cryptographic Key has been successfully generated from the server.")
+                                
+                                # Before starting to send file, check that the server allows it. You cannot upload a file already on the server.
+                                checkreupload = cli_sock.recv(4)
 
-                                # Open the file you are trying to send
-                                f = open(filename,'rb')
-                                data = f.read(33554432)
-                                collection = data
-                                while(data):
+                                if(checkreupload.decode('utf-8') == '----'):
+                                    print("You are trying to upload a file with a taken filename. Please alter the filename.")
+                                    print("")
+                                    break
+                                
+                                # If server allows it, continue to upload file to server.
+                                elif(checkreupload.decode('utf-8') == '---+'):
+
+                                    # Open the file you are trying to send
+                                    f = open(filename,'rb')
                                     data = f.read(33554432)
-                                    collection += data
-                                    print("Sending file...")
-                                    window.refresh()
-                                print("")
+                                    collection = data
+                                    while(data):
+                                        data = f.read(33554432)
+                                        collection += data
+                                        print("Sending file...")
+                                        window.refresh()
+                                    print("")
 
-                                # Encrypt the collected data using AES and send to client
-                                fe = Fernet(key)
-                                encrypted = fe.encrypt(collection)
-                                cli_sock.sendall(encrypted)
-                                f.close()
-                                print("Finished sending file to client")
-                                break
+                                    # Encrypt the collected data using AES and send to client
+                                    fe = Fernet(key)
+                                    encrypted = fe.encrypt(collection)
+                                    cli_sock.sendall(encrypted)
+                                    f.close()
+                                    print("Finished sending file to client")
+                                    break
 
                 elif(choice == 'get'):
                     # Make sure you don't have a file with the same filename already
@@ -132,6 +140,7 @@ while True:
 
                             # If the server has the file, continue to download file.
                             elif(checkreupload.decode('utf-8') == '---+'):
+                                file_length = cli_sock.recv(16)
                                 f = open(str(filename),'wb')
                                 data = cli_sock.recv(33554432)
                                 window.refresh()
@@ -139,7 +148,9 @@ while True:
                                 while(data):
                                     data = cli_sock.recv(33554432)
                                     collection += data
-                                    print("Receiving...")
+                                    received = (int)(100*(len(collection)/int(file_length.decode('utf-8'))))
+                                    print("Receiving..." + str(received) + "% complete")
+                                    progress_bar.UpdateBar(received)
                                     window.refresh()
                                 fe = Fernet(key)
                                 print("Decrypting file...")

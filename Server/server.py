@@ -74,46 +74,51 @@ while running:
 
 		# Handling of put request, sever side
 		if (commands[0] == "put"):
-			print("Put request received")
-			directory = os.listdir()
+			if sys.argv[3]:
+				print("Uploads are disabled for this server session. Please restart the server and enable uploads if you wish to proceed")
+				cli_sock.send('----'.encode('utf-8'))
+			else:
+				cli_sock.send('---+'.encode('utf-8'))
+				print("Put request received")
+				directory = os.listdir()
 
-			# Make sure the client entered the correct password before distributing key to client
-			if(commands[2] == password_provided):
-				cli_sock.send("---+".encode('utf-8'))
-				cli_sock.send(key)
-				print("They cryptographic key for this request has successfully been distributed")
-
-				# Make sure the file is not a reupload, if yes then notify the client to continue
-				if(not commands[1] in directory):
+				# Make sure the client entered the correct password before distributing key to client
+				if(commands[2] == password_provided):
 					cli_sock.send("---+".encode('utf-8'))
+					cli_sock.send(key)
+					print("They cryptographic key for this request has successfully been distributed")
 
-					# Try opening the file with exclusive creation binary mode
-					try:
-						f = open(commands[1],'xb')
-					except FileExistsError:
-						print("This file already exists")
-					data = cli_sock.recv(33554432)
-					collection = data
-					while(data):
-						print("Receiving...")
+					# Make sure the file is not a reupload, if yes then notify the client to continue
+					if(not commands[1] in directory):
+						cli_sock.send("---+".encode('utf-8'))
+
+						# Try opening the file with exclusive creation binary mode
+						try:
+							f = open(commands[1],'xb')
+						except FileExistsError:
+							print("This file already exists")
 						data = cli_sock.recv(33554432)
-						collection += data
-					fe = Fernet(key)
-					decrypted = fe.decrypt(collection)
-					f.write(decrypted)
-					f.close()
-					print("Done Receiving!!!")
-					cli_sock.close()
-				
-				# If file is a reupload, notify the client and reject the file
+						collection = data
+						while(data):
+							print("Receiving...")
+							data = cli_sock.recv(33554432)
+							collection += data
+						fe = Fernet(key)
+						decrypted = fe.decrypt(collection)
+						f.write(decrypted)
+						f.close()
+						print("Done Receiving!!!")
+						cli_sock.close()
+					
+					# If file is a reupload, notify the client and reject the file
+					else:
+						cli_sock.send("----".encode('utf-8'))
+						time.sleep(1)
+						print("The server rejected the file. Filename already taken")
+						cli_sock.close()
 				else:
 					cli_sock.send("----".encode('utf-8'))
-					time.sleep(1)
-					print("The server rejected the file. Filename already taken")
 					cli_sock.close()
-			else:
-				cli_sock.send("----".encode('utf-8'))
-				cli_sock.close()
 
 		# Handling of get request, server side
 		elif(commands[0] == "get"):
@@ -144,6 +149,7 @@ while running:
 					# Encrypt the collected data using AES and send to client
 					fe = Fernet(key)
 					encrypted = fe.encrypt(collection)
+					cli_sock.send(str(len(encrypted)).encode('utf-8'))
 					cli_sock.sendall(encrypted)
 					f.close()
 					print("Finished sending file to client")
