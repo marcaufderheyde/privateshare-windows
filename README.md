@@ -2,8 +2,8 @@
 
 Effective TCP Server and Client operating using python web sockets:
 
-## Download server [Here](https://github.com/marcaufderheyde/privateshare/raw/master/Server/dist/serverApp.exe)
-## Download client [Here](https://github.com/marcaufderheyde/privateshare/raw/master/Client/dist/clientApp.exe)
+## Download server [Here](https://github.com/marcaufderheyde/privateshare/blob/master/Windows/Server/dist/serverApp.exe)
+## Download client [Here](https://github.com/marcaufderheyde/privateshare/blob/master/Windows/Client/dist/clientApp.exe)
 
 #### General notes: 
 
