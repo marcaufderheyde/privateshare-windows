@@ -1,5 +1,3 @@
-const swup = new Swup()
-
 function fadeInPage() {
     if(!window.AnimationEvent) { return; }
     var fader = document.getElementById('fader');
