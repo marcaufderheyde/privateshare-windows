@@ -171,7 +171,7 @@ while True:
                                 # Encrypt the collected data using AES and send to client
                                 fe = Fernet(key)
                                 encrypted = fe.encrypt(collection)
-                                cli_sock.send(str(len(encrypted)).encode('utf-8'))
+                                cli_sock.sendall((str(len(encrypted)) + '**').encode('utf-8'))                                
                                 cli_sock.sendall(encrypted)
                                 f.close()
                                 print("Finished sending file to client")

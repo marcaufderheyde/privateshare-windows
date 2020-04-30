@@ -141,14 +141,16 @@ while True:
                             # If the server has the file, continue to download file.
                             elif(checkreupload.decode('utf-8') == '---+'):
                                 file_length = cli_sock.recv(16)
+                                file_lengthy = file_length.decode('utf-8').split('**')
+                                collection = file_lengthy[1].encode('utf-8')
                                 f = open(str(filename),'wb')
                                 data = cli_sock.recv(33554432)
                                 window.refresh()
-                                collection = data
+                                collection += data
                                 while(data):
                                     data = cli_sock.recv(33554432)
                                     collection += data
-                                    received = (int)(100*(len(collection)/int(file_length.decode('utf-8'))))
+                                    received = (int)(100*(len(collection)/int(file_lengthy[0])))
                                     print("Receiving..." + str(received) + "% complete")
                                     progress_bar.UpdateBar(received)
                                     window.refresh()

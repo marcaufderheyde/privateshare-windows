@@ -123,11 +123,13 @@ try:
 					# If the server has the file, continue to download file.
 					elif(checkreupload.decode('utf-8') == '---+'):
 						file_length = cli_sock.recv(16)
+						file_lengthy = file_length.decode('utf-8').split('**')
+						collection = file_lengthy[1].encode('utf-8')
 						f = open(str(sys.argv[4]),'wb')
 						data = cli_sock.recv(33554432)
-						collection = data
+						collection += data
 						while(data):
-							print("Receiving..." + str((100*(len(collection)/int(file_length.decode('utf-8'))))) + "% complete")
+							print("Receiving..." + str((100*(len(collection)/int(file_lengthy[0])))) + "% complete")
 							data = cli_sock.recv(33554432)
 							collection += data
 						fe = Fernet(key)
